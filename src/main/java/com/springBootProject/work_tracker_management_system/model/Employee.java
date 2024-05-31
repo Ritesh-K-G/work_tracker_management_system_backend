@@ -101,4 +101,8 @@ public class Employee {
     public void pushAssigned(String projectId) {
         this.assigned.add(projectId);
     }
+
+    public void removeAssigned(String projectId) {
+        this.assigned.remove(projectId);
+    }
 }

@@ -2,6 +2,7 @@ package com.springBootProject.work_tracker_management_system.controller;
 
 import com.springBootProject.work_tracker_management_system.dataTransferObject.CommentDTO;
 import com.springBootProject.work_tracker_management_system.dataTransferObject.EmployeeDTO;
+import com.springBootProject.work_tracker_management_system.dataTransferObject.ProjectCollaboratorDTO;
 import com.springBootProject.work_tracker_management_system.dataTransferObject.ProjectDTO;
 import com.springBootProject.work_tracker_management_system.model.Employee;
 import com.springBootProject.work_tracker_management_system.model.Project;
@@ -75,5 +76,17 @@ public class MyController {
     @ResponseStatus(HttpStatus.OK)
     public String updateTask(@RequestBody ProjectDTO projectDTO) {
         return projectService.updateTask(projectDTO);
+    }
+
+    @PostMapping("addCollaborator")
+    @ResponseStatus(HttpStatus.CREATED)
+    public String addCollaborator(@RequestBody ProjectCollaboratorDTO projectCollaboratorDTO) {
+        return projectService.addCollaborator(projectCollaboratorDTO);
+    }
+
+    @PutMapping("removeCollaborator")
+    @ResponseStatus(HttpStatus.OK)
+    public String removeCollaborator(@RequestBody ProjectCollaboratorDTO projectCollaboratorDTO) {
+        return projectService.removeCollaborator(projectCollaboratorDTO);
     }
 }

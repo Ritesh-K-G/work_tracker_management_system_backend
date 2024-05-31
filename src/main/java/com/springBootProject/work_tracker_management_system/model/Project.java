@@ -164,4 +164,12 @@ public class Project {
     public void pushCollaborator(String CollaboratorId) {
         this.collaboratorIds.add(CollaboratorId);
     }
+
+    public void removeCollaborator(String collaboratorId) {
+        this.collaboratorIds.remove(collaboratorId);
+    }
+
+    public boolean checkCollaborator(String collaboratorId) {
+        return this.collaboratorIds.contains(collaboratorId);
+    }
 }

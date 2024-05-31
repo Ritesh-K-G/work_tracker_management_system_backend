@@ -1,6 +1,7 @@
 package com.springBootProject.work_tracker_management_system.service;
 
 import com.springBootProject.work_tracker_management_system.dataTransferObject.CommentDTO;
+import com.springBootProject.work_tracker_management_system.dataTransferObject.ProjectCollaboratorDTO;
 import com.springBootProject.work_tracker_management_system.dataTransferObject.ProjectDTO;
 import com.springBootProject.work_tracker_management_system.model.Comment;
 import com.springBootProject.work_tracker_management_system.model.Employee;
@@ -169,15 +170,19 @@ public class ProjectService {
         return "Project Details Updated";
     }
 
-    public String addCollaborator(ProjectDTO projectDTO, String collaboratorId) {
+    public String addCollaborator(ProjectCollaboratorDTO projectCollaboratorDTO) {
         try {
-            Optional<Project> projectData = projectRepository.findById(projectDTO.getId());
-            Optional<Employee> employeeData = employeeRepository.findById(collaboratorId);
+            Optional<Project> projectData = projectRepository.findById(projectCollaboratorDTO.getProjectId());
+            Optional<Employee> employeeData = employeeRepository.findById(projectCollaboratorDTO.getCollaboratorId());
             if (projectData.isPresent() && employeeData.isPresent()) {
                 Project project = projectData.get();
-                project.pushCollaborator(collaboratorId);
-                projectRepository.save(project);
                 Employee employee = employeeData.get();
+                if (project.checkCollaborator(projectCollaboratorDTO.getCollaboratorId())) {
+                    System.out.println("Collaborator already exist");
+                    return "Collaborator already exist";
+                }
+                project.pushCollaborator(projectCollaboratorDTO.getCollaboratorId());
+                projectRepository.save(project);
                 employee.pushAssigned(project.getId());
                 employeeRepository.save(employee);
             } else {
@@ -189,5 +194,31 @@ public class ProjectService {
             return "Collaborator cannot be added";
         }
         return "Collaborator Added";
+    }
+
+    public String removeCollaborator(ProjectCollaboratorDTO projectCollaboratorDTO) {
+        try {
+            Optional<Project> projectData = projectRepository.findById(projectCollaboratorDTO.getProjectId());
+            Optional<Employee> employeeData = employeeRepository.findById(projectCollaboratorDTO.getCollaboratorId());
+            if (projectData.isPresent() && employeeData.isPresent()) {
+                Project project = projectData.get();
+                Employee employee = employeeData.get();
+                if (!project.checkCollaborator(projectCollaboratorDTO.getCollaboratorId())) {
+                    System.out.println("Collaborator doesn't exist int this Project");
+                    return "Collaborator doesn't exist in this Project";
+                }
+                project.removeCollaborator(projectCollaboratorDTO.getCollaboratorId());
+                projectRepository.save(project);
+                employee.removeAssigned(project.getId());
+                employeeRepository.save(employee);
+            } else {
+                System.out.println("Project/Collaborator doesn't exist");
+                return "Collaborator cannot be removed";
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+            return "Collaborator cannot be removed";
+        }
+        return "Collaborator Removed";
     }
 }
