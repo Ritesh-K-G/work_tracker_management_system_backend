@@ -16,9 +16,6 @@ public class EmployeeDTO {
     private String name;
     private String designation;
 
-    private List<Project> assigned;
-    private List<Project> managing;
-
     public String getId() {
         return id;
     }
@@ -57,21 +54,5 @@ public class EmployeeDTO {
 
     public void setDesignation(String designation) {
         this.designation = designation;
-    }
-
-    public List<Project> getAssigned() {
-        return assigned;
-    }
-
-    public void setAssigned(List<Project> assigned) {
-        this.assigned = assigned;
-    }
-
-    public List<Project> getManaging() {
-        return managing;
-    }
-
-    public void setManaging(List<Project> managing) {
-        this.managing = managing;
     }
 }

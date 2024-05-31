@@ -47,16 +47,18 @@ public class Project {
     }
 
     public Project(ProjectDTO projectDTO) {
+        ZoneId zid = ZoneId.of("Asia/Kolkata");
         this.title = projectDTO.getTitle();
         this.description = projectDTO.getDescription();
         this.managerId = projectDTO.getManagerId();
         this.collaboratorIds = projectDTO.getCollaboratorIds();
         this.status = projectDTO.getStatus();
-        this.commentList = projectDTO.getCommentList();
+        this.commentList = new ArrayList<>();
+        this.edited = false;
         this.assignedOn = projectDTO.getAssignedOn();
         this.deadline = projectDTO.getDeadline();
-        this.completedOn = projectDTO.getCompletedOn();
-        this.lastStatusUpdateOn = projectDTO.getLastStatusUpdateOn();
+        this.completedOn = null;
+        this.lastStatusUpdateOn = LocalDateTime.now(zid);
     }
 
     public String getId() {
@@ -157,5 +159,9 @@ public class Project {
 
     public void addComment(Comment comment) {
         this.commentList.add(comment);
+    }
+
+    public void pushCollaborator(String CollaboratorId) {
+        this.collaboratorIds.add(CollaboratorId);
     }
 }

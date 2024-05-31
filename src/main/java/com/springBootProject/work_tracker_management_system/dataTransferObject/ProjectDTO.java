@@ -1,6 +1,5 @@
 package com.springBootProject.work_tracker_management_system.dataTransferObject;
 
-import com.springBootProject.work_tracker_management_system.model.Comment;
 import com.springBootProject.work_tracker_management_system.model.TaskStatus;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -21,14 +20,10 @@ public class ProjectDTO {
     private String title;
     private String description;
     private String managerId;
-    private boolean edited;
     private List<String> collaboratorIds;
     private TaskStatus status;
-    private List<Comment> commentList;
     private LocalDateTime assignedOn;
     private LocalDateTime deadline;
-    private LocalDateTime completedOn;
-    private LocalDateTime lastStatusUpdateOn;
 
     public ProjectDTO() {
         ZoneId zid = ZoneId.of("Asia/Kolkata");
@@ -36,13 +31,9 @@ public class ProjectDTO {
         this.description = "";
         this.managerId = "";
         this.collaboratorIds = new ArrayList<>();
-        this.edited = false;
         this.status = TaskStatus.ASSIGNED;
-        this.commentList = new ArrayList<>();
         this.assignedOn = LocalDateTime.now(zid);
         this.deadline = LocalDateTime.now(zid);
-        this.completedOn = null;
-        this.lastStatusUpdateOn = LocalDateTime.now(zid);
     }
 
     public String getId() {
@@ -93,14 +84,6 @@ public class ProjectDTO {
         this.status = status;
     }
 
-    public List<Comment> getCommentList() {
-        return commentList;
-    }
-
-    public void setCommentList(List<Comment> commentList) {
-        this.commentList = commentList;
-    }
-
     public LocalDateTime getAssignedOn() {
         return assignedOn;
     }
@@ -115,29 +98,5 @@ public class ProjectDTO {
 
     public void setDeadline(LocalDateTime deadline) {
         this.deadline = deadline;
-    }
-
-    public LocalDateTime getCompletedOn() {
-        return completedOn;
-    }
-
-    public void setCompletedOn(LocalDateTime completedOn) {
-        this.completedOn = completedOn;
-    }
-
-    public LocalDateTime getLastStatusUpdateOn() {
-        return lastStatusUpdateOn;
-    }
-
-    public void setLastStatusUpdateOn(LocalDateTime lastStatusUpdateOn) {
-        this.lastStatusUpdateOn = lastStatusUpdateOn;
-    }
-
-    public boolean getEdited() {
-        return edited;
-    }
-
-    public void setEdited(boolean edited) {
-        this.edited = edited;
     }
 }

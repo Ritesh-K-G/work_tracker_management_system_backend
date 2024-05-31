@@ -9,7 +9,6 @@ import com.springBootProject.work_tracker_management_system.model.TaskStatus;
 import com.springBootProject.work_tracker_management_system.repository.EmployeeRepository;
 import com.springBootProject.work_tracker_management_system.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,7 +32,6 @@ public class ProjectService {
             String managerId = project.getManagerId();
             Project createdProject = projectRepository.save(project);
             String projectId = createdProject.getId();
-            System.out.println(managerId + " " + projectId);
             List<String> collaboratorIds = createdProject.getCollaboratorIds();
             Optional<Employee> managerData = employeeRepository.findById(managerId);
             if (managerData.isPresent()) {
@@ -169,5 +167,27 @@ public class ProjectService {
             System.out.println(e);
         }
         return "Project Details Updated";
+    }
+
+    public String addCollaborator(ProjectDTO projectDTO, String collaboratorId) {
+        try {
+            Optional<Project> projectData = projectRepository.findById(projectDTO.getId());
+            Optional<Employee> employeeData = employeeRepository.findById(collaboratorId);
+            if (projectData.isPresent() && employeeData.isPresent()) {
+                Project project = projectData.get();
+                project.pushCollaborator(collaboratorId);
+                projectRepository.save(project);
+                Employee employee = employeeData.get();
+                employee.pushAssigned(project.getId());
+                employeeRepository.save(employee);
+            } else {
+                System.out.println("Project/Collaborator doesn't exist");
+                return "Collaborator cannot be added";
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+            return "Collaborator cannot be added";
+        }
+        return "Collaborator Added";
     }
 }

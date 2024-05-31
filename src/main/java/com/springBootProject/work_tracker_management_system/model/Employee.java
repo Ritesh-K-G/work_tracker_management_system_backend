@@ -1,6 +1,6 @@
 package com.springBootProject.work_tracker_management_system.model;
 
-import lombok.Builder;
+import com.springBootProject.work_tracker_management_system.dataTransferObject.EmployeeDTO;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -24,7 +24,16 @@ public class Employee {
         this.name = "Employee Name";
         this.email = "user@email.com";
         this.password = "password";
-        this.designation = String.valueOf(Designantion.INTERN);
+        this.designation = String.valueOf(Designation.INTERN);
+        this.managing = new ArrayList<>();
+        this.assigned = new ArrayList<>();
+    }
+
+    public Employee(EmployeeDTO employeeDTO) {
+        this.email = employeeDTO.getEmail();
+        this.password = employeeDTO.getPassword();
+        this.name = employeeDTO.getName();
+        this.designation = employeeDTO.getDesignation();
         this.managing = new ArrayList<>();
         this.assigned = new ArrayList<>();
     }

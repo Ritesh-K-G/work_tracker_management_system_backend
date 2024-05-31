@@ -17,16 +17,13 @@ public class EmployeeService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    public String createEmployee(EmployeeDTO userTO) {
+    public String createEmployee(EmployeeDTO employeeDTO) {
         try {
-            Employee employee = new Employee();
-            employee.setName(userTO.getName());
-            employee.setEmail(userTO.getEmail());
-            employee.setPassword(userTO.getPassword());
-            employee.setDesignation(userTO.getDesignation());
+            Employee employee = new Employee(employeeDTO);
             employeeRepository.save(employee);
         } catch (Exception e) {
             // TO DO
+            System.out.println(e);
         }
         return "Employee Created";
     }
@@ -37,6 +34,7 @@ public class EmployeeService {
             allEmployees = employeeRepository.findAll();
         } catch (Exception e) {
             // TO DO
+            System.out.println(e);
         }
         return allEmployees;
     }
