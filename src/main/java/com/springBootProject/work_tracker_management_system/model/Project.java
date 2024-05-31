@@ -23,6 +23,7 @@ public class Project {
     private String description;
     private Boolean edited;
     private String managerId;
+    private String managerName;
     private List<String> collaboratorIds;
     private TaskStatus status;
     private List<Comment> commentList;
@@ -36,6 +37,7 @@ public class Project {
         this.title = "";
         this.description = "";
         this.managerId = "";
+        this.managerName = "";
         this.edited = false;
         this.collaboratorIds = new ArrayList<>();
         this.status = TaskStatus.ASSIGNED;
@@ -51,11 +53,12 @@ public class Project {
         this.title = projectDTO.getTitle();
         this.description = projectDTO.getDescription();
         this.managerId = projectDTO.getManagerId();
+        this.managerName = projectDTO.getManagerName();
         this.collaboratorIds = projectDTO.getCollaboratorIds();
         this.status = projectDTO.getStatus();
         this.commentList = new ArrayList<>();
         this.edited = false;
-        this.assignedOn = projectDTO.getAssignedOn();
+        this.assignedOn = LocalDateTime.now(zid);
         this.deadline = projectDTO.getDeadline();
         this.completedOn = null;
         this.lastStatusUpdateOn = LocalDateTime.now(zid);
@@ -91,6 +94,14 @@ public class Project {
 
     public void setManagerId(String managerId) {
         this.managerId = managerId;
+    }
+
+    public String getManagerName() {
+        return managerName;
+    }
+
+    public void setManagerName(String managerName) {
+        this.managerName = managerName;
     }
 
     public List<String> getCollaboratorIds() {

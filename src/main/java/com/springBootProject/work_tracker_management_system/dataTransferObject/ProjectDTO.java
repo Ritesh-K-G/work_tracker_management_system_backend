@@ -20,6 +20,7 @@ public class ProjectDTO {
     private String title;
     private String description;
     private String managerId;
+    private String managerName;
     private List<String> collaboratorIds;
     private TaskStatus status;
     private LocalDateTime assignedOn;
@@ -30,6 +31,7 @@ public class ProjectDTO {
         this.title = "";
         this.description = "";
         this.managerId = "";
+        this.managerName = "";
         this.collaboratorIds = new ArrayList<>();
         this.status = TaskStatus.ASSIGNED;
         this.assignedOn = LocalDateTime.now(zid);
@@ -66,6 +68,14 @@ public class ProjectDTO {
 
     public void setManagerId(String managerId) {
         this.managerId = managerId;
+    }
+
+    public String getManagerName() {
+        return managerName;
+    }
+
+    public void setManagerName(String managerName) {
+        this.managerName = managerName;
     }
 
     public List<String> getCollaboratorIds() {
