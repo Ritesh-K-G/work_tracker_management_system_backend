@@ -3,8 +3,10 @@ package com.springBootProject.work_tracker_management_system.model;
 import com.springBootProject.work_tracker_management_system.dataTransferObject.ProjectDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.util.Pair;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -25,7 +27,9 @@ public class Project {
     private String managerId;
     private String managerName;
     private List<String> collaboratorIds;
+    private List<String> collaboratorNames;
     private TaskStatus status;
+    private List<Pair<String, LocalDateTime>> updatesTimeline;
     private List<Comment> commentList;
     private LocalDateTime assignedOn;
     private LocalDateTime deadline;
@@ -40,12 +44,15 @@ public class Project {
         this.managerName = "";
         this.edited = false;
         this.collaboratorIds = new ArrayList<>();
+        this.collaboratorNames = new ArrayList<>();
         this.status = TaskStatus.ASSIGNED;
+        this.updatesTimeline = new ArrayList<>();
         this.commentList = new ArrayList<>();
         this.assignedOn = LocalDateTime.now(zid);
         this.deadline = LocalDateTime.now(zid);
         this.completedOn = null;
         this.lastStatusUpdateOn = LocalDateTime.now(zid);
+        this.addStatusUpdateTimeline(TaskStatus.ASSIGNED.toString(), this.lastStatusUpdateOn);
     }
 
     public Project(ProjectDTO projectDTO) {
@@ -55,7 +62,9 @@ public class Project {
         this.managerId = projectDTO.getManagerId();
         this.managerName = projectDTO.getManagerName();
         this.collaboratorIds = projectDTO.getCollaboratorIds();
+        this.collaboratorNames = new ArrayList<>();
         this.status = projectDTO.getStatus();
+        this.updatesTimeline = new ArrayList<>();
         this.commentList = new ArrayList<>();
         this.edited = false;
         this.assignedOn = LocalDateTime.now(zid);
@@ -112,12 +121,28 @@ public class Project {
         this.collaboratorIds = collaboratorIds;
     }
 
+    public List<String> getCollaboratorNames() {
+        return collaboratorNames;
+    }
+
+    public void setCollaboratorNames(List<String> collaboratorNames) {
+        this.collaboratorNames = collaboratorNames;
+    }
+
     public TaskStatus getStatus() {
         return status;
     }
 
     public void setStatus(TaskStatus status) {
         this.status = status;
+    }
+
+    public List<Pair<String, LocalDateTime>> getUpdatesTimeline() {
+        return updatesTimeline;
+    }
+
+    public void setUpdatesTimeline(List<Pair<String, LocalDateTime>> updatesTimeline) {
+        this.updatesTimeline = updatesTimeline;
     }
 
     public List<Comment> getCommentList() {
@@ -182,5 +207,17 @@ public class Project {
 
     public boolean checkCollaborator(String collaboratorId) {
         return this.collaboratorIds.contains(collaboratorId);
+    }
+
+    public void addStatusUpdateTimeline(String update, LocalDateTime time) {
+        this.updatesTimeline.add(Pair.of(update, time));
+    }
+
+    public void pushCollaboratorName(String name) {
+        this.collaboratorNames.add(name);
+    }
+
+    public void removeCollaboratorName(String name) {
+        this.collaboratorNames.remove(name);
     }
 }

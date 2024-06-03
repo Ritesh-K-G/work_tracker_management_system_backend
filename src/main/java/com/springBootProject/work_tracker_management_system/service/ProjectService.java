@@ -31,12 +31,14 @@ public class ProjectService {
         Project project = new Project(projectDTO);
         try {
             String managerId = project.getManagerId();
+            ZoneId zid = ZoneId.of("Asia/Kolkata");
+            project.addStatusUpdateTimeline("ASSIGNED", LocalDateTime.now(zid));
             Project createdProject = projectRepository.save(project);
+            List<String> collaboratorNames = new ArrayList<>();
             String projectId = createdProject.getId();
             List<String> collaboratorIds = createdProject.getCollaboratorIds();
             Optional<Employee> managerData = employeeRepository.findById(managerId);
             if (managerData.isPresent()) {
-                System.out.println(managerData.get());
                 Employee manager = managerData.get();
                 manager.pushManaging(projectId);
                 employeeRepository.save(manager);
@@ -44,6 +46,7 @@ public class ProjectService {
                     Optional<Employee> collaboratorData = employeeRepository.findById(collaboratorId);
                     if (collaboratorData.isPresent()) {
                         Employee collaborator = collaboratorData.get();
+                        collaboratorNames.add(collaborator.getName());
                         collaborator.pushAssigned(projectId);
                         employeeRepository.save(collaborator);
                     } else {
@@ -51,6 +54,9 @@ public class ProjectService {
                         System.out.println("Employee not found, " + collaboratorId);
                     }
                 }
+                createdProject.setManagerName(manager.getName());
+                createdProject.setCollaboratorNames(collaboratorNames);
+                projectRepository.save(createdProject);
             } else {
                 // TO DO
                 System.out.println("Manager not found, " + managerId);
@@ -88,7 +94,6 @@ public class ProjectService {
             Optional<Employee> employeeData = employeeRepository.findById(Id);
             if (employeeData.isPresent()) {
                 Employee employee = employeeData.get();
-                System.out.println(employee);
                 List<String> assignedProjectsId = employee.getAssigned();
                 for (String projectID : assignedProjectsId) {
                     Optional<Project> projectData = projectRepository.findById(projectID);
@@ -112,20 +117,19 @@ public class ProjectService {
                 TaskStatus currentStatus = project.getStatus();
                 if (currentStatus == TaskStatus.ASSIGNED) {
                     project.setStatus(TaskStatus.RECEIVED);
-                    project.setLastStatusUpdateOn(LocalDateTime.now(zid));
                 } else if (currentStatus == TaskStatus.RECEIVED) {
                     project.setStatus(TaskStatus.IN_PROGRESS);
-                    project.setLastStatusUpdateOn(LocalDateTime.now(zid));
                 } else if (currentStatus == TaskStatus.IN_PROGRESS) {
                     project.setStatus(TaskStatus.COMPLETED);
-                    project.setLastStatusUpdateOn(LocalDateTime.now(zid));
                     project.setCompletedOn(LocalDateTime.now(zid));
                 } else if (currentStatus == TaskStatus.COMPLETED) {
                     project.setStatus(TaskStatus.ACCEPTED);
-                    project.setLastStatusUpdateOn(LocalDateTime.now(zid));
                 } else {
                     // Task has already been closed
+                    return "Project has already been closed";
                 }
+                project.setLastStatusUpdateOn(LocalDateTime.now(zid));
+                project.addStatusUpdateTimeline(project.getStatus().toString(), LocalDateTime.now(zid));
                 projectRepository.save(project);
             }
         } catch (Exception e) {
@@ -134,13 +138,16 @@ public class ProjectService {
         return "Project Status Updated";
     }
 
-    public String addComment(CommentDTO commentDTO) {
+    public String addComment(CommentDTO commentDTO, String id) {
         try{
             Comment comment = new Comment(commentDTO);
             String projectId = commentDTO.getTaskId();
+            Optional<Employee> employeeData = employeeRepository.findById(id);
             Optional<Project> projectData = projectRepository.findById(projectId);
-            if (projectData.isPresent()) {
+            if (projectData.isPresent() && employeeData.isPresent()) {
                 Project project = projectData.get();
+                Employee employee = employeeData.get();
+                comment.setCommentatorName(employee.getName());
                 project.addComment(comment);
                 projectRepository.save(project);
             }
@@ -153,16 +160,34 @@ public class ProjectService {
     public String updateTask(ProjectDTO projectDTO) {
         try {
             String projectId = projectDTO.getId();
+            System.out.println(projectDTO);
             Optional<Project> projectData = projectRepository.findById(projectId);
             if (projectData.isPresent()) {
-                ZoneId zid = ZoneId.of("Asia/Kolkata");
                 Project project = projectData.get();
-                project.setEdited(true);
-                project.setTitle(projectDTO.getTitle());
-                project.setDescription(projectDTO.getDescription());
-                project.setDeadline(projectDTO.getDeadline());
-                project.setLastStatusUpdateOn(LocalDateTime.now(zid));
-                projectRepository.save(project);
+                // add new collaborators
+                for (String collaboratorId: projectDTO.getCollaboratorIds()) {
+                    if (!project.checkCollaborator(collaboratorId)) {
+                        addCollaborator(projectId, collaboratorId);
+                    }
+                }
+                // remove excluded collaborators
+                for (String collaboratorId: project.getCollaboratorIds()) {
+                    if (!projectDTO.getCollaboratorIds().contains(collaboratorId)) {
+                        removeCollaborator(projectId, collaboratorId);
+                    }
+                }
+                projectData = projectRepository.findById(projectId);
+                if (projectData.isPresent()) {
+                    project = projectData.get();
+                    ZoneId zid = ZoneId.of("Asia/Kolkata");
+                    project.setEdited(true);
+                    project.setTitle(projectDTO.getTitle());
+                    project.setDescription(projectDTO.getDescription());
+                    project.setDeadline(projectDTO.getDeadline());
+                    project.setLastStatusUpdateOn(LocalDateTime.now(zid));
+                    project.addStatusUpdateTimeline("Edited", LocalDateTime.now(zid));
+                    projectRepository.save(project);
+                }
             }
         } catch (Exception e) {
             System.out.println(e);
@@ -170,55 +195,61 @@ public class ProjectService {
         return "Project Details Updated";
     }
 
-    public String addCollaborator(ProjectCollaboratorDTO projectCollaboratorDTO) {
+    public void addCollaborator(String projectId, String collaboratorId) {
         try {
-            Optional<Project> projectData = projectRepository.findById(projectCollaboratorDTO.getProjectId());
-            Optional<Employee> employeeData = employeeRepository.findById(projectCollaboratorDTO.getCollaboratorId());
+            Optional<Project> projectData = projectRepository.findById(projectId);
+            Optional<Employee> employeeData = employeeRepository.findById(collaboratorId);
             if (projectData.isPresent() && employeeData.isPresent()) {
                 Project project = projectData.get();
                 Employee employee = employeeData.get();
-                if (project.checkCollaborator(projectCollaboratorDTO.getCollaboratorId())) {
+                if (project.checkCollaborator(collaboratorId)) {
                     System.out.println("Collaborator already exist");
-                    return "Collaborator already exist";
                 }
-                project.pushCollaborator(projectCollaboratorDTO.getCollaboratorId());
-                projectRepository.save(project);
+                project.pushCollaborator(collaboratorId);
                 employee.pushAssigned(project.getId());
+                project.pushCollaboratorName(employee.getName());
+                projectRepository.save(project);
                 employeeRepository.save(employee);
             } else {
                 System.out.println("Project/Collaborator doesn't exist");
-                return "Collaborator cannot be added";
             }
         } catch (Exception e) {
             System.out.println(e);
-            return "Collaborator cannot be added";
         }
-        return "Collaborator Added";
     }
 
-    public String removeCollaborator(ProjectCollaboratorDTO projectCollaboratorDTO) {
+    public void removeCollaborator(String projectId, String collaboratorId) {
         try {
-            Optional<Project> projectData = projectRepository.findById(projectCollaboratorDTO.getProjectId());
-            Optional<Employee> employeeData = employeeRepository.findById(projectCollaboratorDTO.getCollaboratorId());
+            Optional<Project> projectData = projectRepository.findById(projectId);
+            Optional<Employee> employeeData = employeeRepository.findById(collaboratorId);
             if (projectData.isPresent() && employeeData.isPresent()) {
                 Project project = projectData.get();
                 Employee employee = employeeData.get();
-                if (!project.checkCollaborator(projectCollaboratorDTO.getCollaboratorId())) {
+                if (!project.checkCollaborator(collaboratorId)) {
                     System.out.println("Collaborator doesn't exist int this Project");
-                    return "Collaborator doesn't exist in this Project";
                 }
-                project.removeCollaborator(projectCollaboratorDTO.getCollaboratorId());
-                projectRepository.save(project);
+                project.removeCollaborator(collaboratorId);
                 employee.removeAssigned(project.getId());
+                project.removeCollaboratorName(employee.getName());
+                projectRepository.save(project);
                 employeeRepository.save(employee);
             } else {
                 System.out.println("Project/Collaborator doesn't exist");
-                return "Collaborator cannot be removed";
             }
         } catch (Exception e) {
             System.out.println(e);
-            return "Collaborator cannot be removed";
         }
-        return "Collaborator Removed";
+    }
+
+    public void reAssign(String projectId) {
+        Optional<Project> projectData = projectRepository.findById(projectId);
+        if (projectData.isPresent()) {
+            Project project = projectData.get();
+            ZoneId zid = ZoneId.of("Asia/Kolkata");
+            project.setEdited(true);
+            project.setStatus(TaskStatus.ASSIGNED);
+            project.addStatusUpdateTimeline("Reassigned", LocalDateTime.now(zid));
+            projectRepository.save(project);
+        }
     }
 }

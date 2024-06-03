@@ -11,6 +11,7 @@ import com.springBootProject.work_tracker_management_system.service.ProjectServi
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -28,13 +29,27 @@ public class MyController {
     @PostMapping("createEmployee")
     @ResponseStatus(HttpStatus.CREATED)
     public String createUser(@RequestBody EmployeeDTO employeeDTO) {
-        return employeeService.createEmployee(employeeDTO);
+        String res = employeeService.createEmployee(employeeDTO);
+        if (res.equals("Employee cannot be added")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Employee cannot be added");
+        }
+        return res;
+    }
+
+    @GetMapping("validate")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public String validate(@RequestParam String email, @RequestParam String password) {
+        String res = employeeService.login(email, password);
+        if (res.equals("no")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User email / password is incorrect");
+        }
+        return res;
     }
 
     @GetMapping("find")
     @ResponseStatus(HttpStatus.OK)
-    public List<Employee> findAllEmployee() {
-        return employeeService.findAll();
+    public List<Employee> findAllEmployee(@RequestParam String id) {
+        return employeeService.findAll(id);
     }
 
     @PostMapping("createTask")
@@ -63,8 +78,8 @@ public class MyController {
 
     @PostMapping("addComment")
     @ResponseStatus(HttpStatus.CREATED)
-    public String  addComment(@RequestBody CommentDTO commentDTO) {
-        return projectService.addComment(commentDTO);
+    public String  addComment(@RequestBody CommentDTO commentDTO, @RequestParam String id) {
+        return projectService.addComment(commentDTO, id);
     }
 
     @GetMapping("findEmployee")
@@ -73,21 +88,15 @@ public class MyController {
         return employeeService.findById(Id);
     }
 
+    @PutMapping("reassign")
+    @ResponseStatus(HttpStatus.OK)
+    public void reAssign(@RequestParam String id) {
+        projectService.reAssign(id);
+    }
+
     @PutMapping("updateTaskDetails")
     @ResponseStatus(HttpStatus.OK)
     public String updateTask(@RequestBody ProjectDTO projectDTO) {
         return projectService.updateTask(projectDTO);
-    }
-
-    @PostMapping("addCollaborator")
-    @ResponseStatus(HttpStatus.CREATED)
-    public String addCollaborator(@RequestBody ProjectCollaboratorDTO projectCollaboratorDTO) {
-        return projectService.addCollaborator(projectCollaboratorDTO);
-    }
-
-    @PutMapping("removeCollaborator")
-    @ResponseStatus(HttpStatus.OK)
-    public String removeCollaborator(@RequestBody ProjectCollaboratorDTO projectCollaboratorDTO) {
-        return projectService.removeCollaborator(projectCollaboratorDTO);
     }
 }

@@ -14,5 +14,4 @@ public class WorkTrackerManagementSystemApplication {
 		SpringApplication.run(WorkTrackerManagementSystemApplication.class, args);
 		log.info("Work Tracker Application Started Successfully");
 	}
-
 }
